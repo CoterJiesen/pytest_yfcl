@@ -1,0 +1,110 @@
+import pytest
+import allure
+from operation.ext_api import push_ra_order_data, push_ra_bill_data
+from operation.encode_api import get_core_company_sign, get_ra_encoded_data
+from common.logger import logger
+import operation.ext_api_data_init as datar
+import json
+
+
+@allure.severity(allure.severity_level.TRIVIAL)
+@allure.epic("外部接口测试模块-多个测试用例-代码模式")
+@allure.feature("外部接口测试模块-多个测试用例-代码模式")
+class TestExtApi:
+    # 红色加力订单项
+    ra_data_items = []
+    # 总批次
+    totalBatch = 100
+    # 当前批次
+    currentBatch = 2
+    # 红色加力订单条数
+    raDataItemsCount = 10
+
+    @allure.step("步骤1 ==>> 初始化 : 总批次、当前批次、红色加力订单条数")
+    def init(self, totalBatch, currentBatch, raDataItemsCount):
+        """初始化数据"""
+        self.totalBatch = totalBatch
+        self.currentBatch = currentBatch
+        self.raDataItemsCount = raDataItemsCount
+        logger.info("初始化数据: 总批次==>>【 {} 】，当前批次 ==>>【 {} 】，订单条数 ==>>【 {} 】"
+                    .format(totalBatch, currentBatch, raDataItemsCount))
+
+    @allure.step("步骤2 ==>> 创建订单项数据")
+    def createRaDataItems(self):
+        """构造核心企业数据"""
+        for _ in range(self.raDataItemsCount):
+            core_company_data = datar.create_core_company_data(
+                datar.random_time("2023-04-01 00:00:00", "2023-04-05 23:00:00"),
+                datar.random_time("2023-04-06 00:00:00", "2023-04-25 23:00:00"),
+                datar.random_time("2023-04-25 00:00:00", "2023-04-29 23:00:00")
+            )
+            content = core_company_data.get("content")
+            core_company_data["content"] = json.dumps(content, ensure_ascii=False)
+            # print(core_company_data)
+            # 获取签名
+            result = get_core_company_sign(core_company_data)
+            logger.info("code ==>> 核心企业签名，期望结果：0， 实际结果：【 {} 】".format(result["code"]))
+            assert result["code"] == '0'
+            logger.info("data ==>>【 {} 】，message ==>> 【 {} 】".format(result["data"], result["message"]))
+            ra_data_item = datar.create_ra_data_item(content, result["data"])
+            self.ra_data_items.append(ra_data_item)
+
+    @allure.step("步骤3 ==>> 推送订单信息")
+    def pushRaOrderData(self):
+        # 推送订单信息
+        # 1、构造红色加力数据并获取加密结果
+        ra_data = datar.create_ra_data(self.totalBatch, self.currentBatch, self.ra_data_items)
+        # print(ra_data)
+        # 获取加密数据
+        result = get_ra_encoded_data(ra_data)
+        logger.info("code ==>> 【 {} 】".format(result["code"]))
+        assert result["code"] == '0'
+        logger.info("data ==>>【 {} 】，message ==>>【 {} 】".format(result["data"], result["message"]))
+
+        # 2、加密结果发送给订单接口
+        ra_encoded_data = result["data"]
+        # print(ra_encoded_data)
+        result = push_ra_order_data(ra_encoded_data)
+        logger.info("result ==>> 【 {} 】".format(result))
+
+    @allure.step("步骤4 ==>> 推送账单信息")
+    def pushRaBillData(self):
+        """推送账单信息"""
+        # 1、构造红色加力数据并获取加密结果
+        ra_data = datar.create_ra_bill_data(self.ra_data_items)
+        # print(ra_data)
+        # 获取加密数据
+        result = get_ra_encoded_data(ra_data)
+        logger.info("code ==>>【 {} 】".format(result["code"]))
+        assert result["code"] == '0'
+        logger.info("data ==>>【 {} 】，message ==>>【 {} 】".format(result["data"], result["message"]))
+
+        # 2、加密结果发送给账单接口
+        ra_encoded_data = result["data"]
+        # print(ra_encoded_data)
+        result = push_ra_bill_data(ra_encoded_data)
+        logger.info("result ==>> 【 {} 】".format(result))
+
+    @allure.story("用例--推送红色加力订单数据和账单数据--预期成功")
+    @allure.description("该用例是针对 推送红色加力订单数据和账单数据 场景的测试")
+    @allure.title("推送红色加力订单数据和账单数据-预期成功")
+    @pytest.mark.single
+    def test_push_ra_order_and_bill_data(self):
+        logger.info("*************** 开始执行用例 ***************")
+        # 1、初始化数据
+        self.init(10, 1, 1)
+
+        # 2、构造核心企业数据并获取签名
+        self.createRaDataItems()
+
+        # 3、推送订单信息
+        self.pushRaOrderData()
+
+        # 4、推送账单信息
+        self.pushRaBillData()
+
+        logger.info("*************** 结束执行用例 ***************")
+
+
+if __name__ == '__main__':
+    pytest.main(["-q", "-s", "test_01_get_user_info.py"])
