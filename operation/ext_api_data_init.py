@@ -3,7 +3,7 @@ import random
 import time
 import json
 
-coreCompanyName = "核⼼阿里巴巴（中国）网络技术有限公司"
+coreCompanyName = "阿里巴巴（中国）网络技术有限公司"
 coreCompanyCertNo = "91330100716105852F"
 
 

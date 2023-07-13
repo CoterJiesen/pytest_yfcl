@@ -14,15 +14,13 @@ conf_order = get_data("api_test_ext_order.yml")["test_push_order"]
 @allure.epic("外部接口测试模块-多个测试用例-配置模式")
 @allure.feature("外部接口测试模块-多个测试用例-配置模式")
 class TestExtApi:
-    # 共享的全局变量
-    @pytest.fixture(scope='session')
-    @allure.step("步骤1 ==>> 创建订单项数据")
-    def createRaDataItems(self):
+    def setup_class(self):
+        print("\nhere is setup_class")
         raDataItemsCount = conf_order["raDataItemsCount"]
         """构造核心企业数据"""
         logger.info("开始创建订单项，订单数 ==>>【 {} 】".format(raDataItemsCount))
         # 红色加力订单项
-        ra_data_items = []
+        self.ra_data_items = []
         for _ in range(raDataItemsCount):
             core_company_data = datar.create_core_company_data(
                 datar.random_time("2023-04-01 00:00:00", "2023-04-05 23:00:00"),
@@ -38,16 +36,16 @@ class TestExtApi:
             assert result["code"] == '0'
             logger.info("data ==>>【 {} 】，message ==>> 【 {} 】".format(result["data"], result["message"]))
             ra_data_item = datar.create_ra_data_item(content, result["data"])
-            ra_data_items.append(ra_data_item)
-        return ra_data_items
+            self.ra_data_items.append(ra_data_item)
 
     @allure.step("步骤2 ==>> 推送订单信息")
-    def testPushRaOrderData(self, createRaDataItems):
+    def testPushRaOrderData(self):
         # 推送订单信息
         # 1、构造红色加力数据并获取加密结果
         totalBatch = conf_order["totalBatch"]
         currentBatch = conf_order["currentBatch"]
-        ra_data = datar.create_ra_data(totalBatch, currentBatch, createRaDataItems)
+        logger.info("ra_data_items 长度 ==>> 【 {} 】".format(len(self.ra_data_items)))
+        ra_data = datar.create_ra_data(totalBatch, currentBatch, self.ra_data_items)
         # print(ra_data)
         # 获取加密数据
         result = get_ra_encoded_data(ra_data)
@@ -62,10 +60,11 @@ class TestExtApi:
         logger.info("result ==>> 【 {} 】".format(result))
 
     @allure.step("步骤3 ==>> 推送账单信息")
-    def testPushRaBillData(self, createRaDataItems):
+    def testPushRaBillData(self):
         """推送账单信息"""
         # 1、构造红色加力数据并获取加密结果
-        ra_data = datar.create_ra_bill_data(createRaDataItems)
+        logger.info("ra_data_items 长度 ==>> 【 {} 】".format(len(self.ra_data_items)))
+        ra_data = datar.create_ra_bill_data(self.ra_data_items)
         # print(ra_data)
         # 获取加密数据
         result = get_ra_encoded_data(ra_data)

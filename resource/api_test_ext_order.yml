@@ -1,5 +1,5 @@
 test_push_order:
   # 总批次、当前批次、订单数
   totalBatch: 10
-  currentBatch: 2
-  raDataItemsCount: 20
+  currentBatch: 4
+  raDataItemsCount: 2
