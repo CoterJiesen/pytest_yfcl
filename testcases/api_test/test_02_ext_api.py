@@ -1,13 +1,13 @@
+import json
 import pytest
 import allure
 from operation.ext_api import push_ra_order_data, push_ra_bill_data
 from operation.encode_api import get_core_company_sign, get_ra_encoded_data
 from common.logger import logger
 import operation.ext_api_data_init as datar
-from common.conf import get_data
-import json
 
-conf_order = get_data("api_test_ext_order.yml")["test_push_order"]
+conf_order = datar.test_push_order["batch"]
+date = datar.test_push_order["date"]
 
 
 @allure.severity(allure.severity_level.TRIVIAL)
@@ -23,9 +23,9 @@ class TestExtApi:
         self.ra_data_items = []
         for _ in range(raDataItemsCount):
             core_company_data = datar.create_core_company_data(
-                datar.random_time("2023-04-01 00:00:00", "2023-04-05 23:00:00"),
-                datar.random_time("2023-04-06 00:00:00", "2023-04-25 23:00:00"),
-                datar.random_time("2023-04-25 00:00:00", "2023-04-29 23:00:00")
+                datar.random_time(date["checkInDateStart"], date["checkInDateEnd"]),
+                datar.random_time(date["checkOutDateStart"], date["checkOutDateEnd"]),
+                datar.random_time(date["saleDateStart"], date["saleDateEnd"])
             )
             content = core_company_data.get("content")
             core_company_data["content"] = json.dumps(content, ensure_ascii=False)
@@ -39,6 +39,7 @@ class TestExtApi:
             self.ra_data_items.append(ra_data_item)
 
     @allure.step("步骤2 ==>> 推送订单信息")
+    @pytest.mark.run(order=1)
     def testPushRaOrderData(self):
         # 推送订单信息
         # 1、构造红色加力数据并获取加密结果
@@ -60,6 +61,8 @@ class TestExtApi:
         logger.info("result ==>> 【 {} 】".format(result))
 
     @allure.step("步骤3 ==>> 推送账单信息")
+    @pytest.mark.run(order=2)
+    # @pytest.mark.repeat(2)
     def testPushRaBillData(self):
         """推送账单信息"""
         # 1、构造红色加力数据并获取加密结果

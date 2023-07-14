@@ -2,12 +2,15 @@ import datetime
 import random
 import time
 import json
+from common.conf import get_data
 
-coreCompanyName = "阿里巴巴（中国）网络技术有限公司"
-coreCompanyCertNo = "91330100716105852F"
+test_push_order = get_data("api_test_ext_order.yml")["test_push_order"]
+company = test_push_order["company"]
+assetProvider = company["assetProvider"]
+coreCompany = company["coreCompany"]
 
 
-def randomtimes(start, end, n, frmt="%Y-%m-%d %H:%M:%S"):
+def random_times(start, end, n, frmt="%Y-%m-%d %H:%M:%S"):
     stime = datetime.datetime.strptime(start, frmt)
     etime = datetime.datetime.strptime(end, frmt)
     time_datetime = [random.random() * (etime - stime) + stime for _ in range(n)]
@@ -19,7 +22,10 @@ def random_time(start, end, frmt="%Y-%m-%d %H:%M:%S"):
     stime = datetime.datetime.strptime(start, frmt)
     etime = datetime.datetime.strptime(end, frmt)
     time_datetime = random.random() * (etime - stime) + stime
-    return time_datetime.strftime(frmt)
+    # 返回格式化的时间字符串
+    # return time_datetime.strftime(frmt)
+    # 返回时间戳毫秒数
+    return int(time_datetime.timestamp() * 1000)
 
 
 def create_core_company_data(checkInDate, checkOutDate, saleDate):
@@ -31,8 +37,8 @@ def create_core_company_data(checkInDate, checkOutDate, saleDate):
         "orderNo": "HXQY_" + str(int(time.time())) + str(random.randint(1000, 9999)),
         "hotelName": hotels[random.randint(0, len(hotels) - 1)] + str(random.randint(1000, 9999)),
         "hotelCode": "HTCODE_" + str(random.randint(1000, 9999)),
-        "coreCompanyName": coreCompanyName,
-        "coreCompanyCertNo": coreCompanyCertNo,
+        "coreCompanyName": coreCompany["coreCompanyName"],
+        "coreCompanyCertNo": coreCompany["coreCompanyCertNo"],
         "roomNum": random.randint(1, 100),
         "saleDate": saleDate,
         "checkInDate": checkInDate,
@@ -44,7 +50,7 @@ def create_core_company_data(checkInDate, checkOutDate, saleDate):
     }
     return {
         "content": core_company_data,
-        "companyCertNo": coreCompanyCertNo
+        "companyCertNo": coreCompany["coreCompanyCertNo"]
     }
 
 
@@ -62,10 +68,10 @@ def create_ra_data_item(core_company_data, signature):
 
 def create_ra_data(totalBatch, currentBatch, ra_data_items):
     ra_data = {
-        "assetProviderName": "武汉市天下房仓科技有限公司",
-        "assetProviderCertNo": "91420107MA4KRMGU7K",
-        "coreCompanyName": coreCompanyName,
-        "coreCompanyCertNo": coreCompanyCertNo,
+        "assetProviderName": assetProvider["assetProviderName"],
+        "assetProviderCertNo": assetProvider["assetProviderCertNo"],
+        "coreCompanyName": coreCompany["coreCompanyName"],
+        "coreCompanyCertNo": coreCompany["coreCompanyCertNo"],
         "totalBatch": totalBatch,
         "currentBatch": currentBatch,
         "list": ra_data_items
@@ -86,8 +92,8 @@ def create_ra_bill_data(ra_data_items):
     bill_data = {
         "billInfo": {
             "billStatus": "1",
-            "coreCompanyName": "阿里巴巴（中国）网络技术有限公司",
-            "coreCompanyCertNo": "91330100716105852F",
+            "coreCompanyName": coreCompany["coreCompanyName"],
+            "coreCompanyCertNo": coreCompany["coreCompanyCertNo"],
             "billNo": "BILL_" + str(int(time.time())) + str(random.randint(1000, 9999)),
             "billDate": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
             "billAmt": billAmt,
