@@ -1,4 +1,5 @@
 from api.encode_api import encodeApi
+from common.conf import get_token
 
 
 def get_core_company_sign(core_data):
@@ -10,6 +11,9 @@ def get_core_company_sign(core_data):
     header = {
         "Content-Type": "application/json"
     }
+    token = get_token()
+    if token:
+        header["token"] = token
     response = encodeApi.get_core_company_sign(json=core_data, headers=header)
     assert response.status_code == 200
     return response.json()

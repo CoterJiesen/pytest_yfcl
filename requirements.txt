@@ -3,3 +3,5 @@ PyMySQL==0.9.3
 allure-pytest==2.8.6
 requests==2.20.0
 PyYAML==5.3.1
+pytest-ordering==0.6
+pytest-repeat==0.9.1

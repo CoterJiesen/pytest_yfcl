@@ -62,7 +62,8 @@ class TestExtApi:
 
     @allure.step("步骤3 ==>> 推送账单信息")
     @pytest.mark.run(order=2)
-    # @pytest.mark.repeat(2)
+    @pytest.mark.repeat(2)
+    # @pytest.mark.skip(reason="no way of currently testing this")
     def testPushRaBillData(self):
         """推送账单信息"""
         # 1、构造红色加力数据并获取加密结果

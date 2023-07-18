@@ -1,11 +1,8 @@
-import allure
 import pytest
 import os
-import pickle
-from common.conf import token_path
 from common.logger import logger
 from api.auth_api import auth
-from common.conf import get_data
+from common.conf import token_path, get_data, get_token, save_token
 
 user = get_data("env.yml")["auth"]
 
@@ -32,17 +29,3 @@ def clear_login_file():
         logger.info("清理token文件")
         os.remove(token_path)
 
-
-def save_token(token):
-    # token_path为目录中一个存放token的文件路径，自己定义。
-    with open(token_path, 'wb') as f:
-        pickle.dump(token, f)
-        f.close()
-
-
-def get_token():
-    # 增加一个读取文件的方法
-    with open(token_path, 'rb') as f:
-        data = pickle.load(f)
-        f.close()
-        return data

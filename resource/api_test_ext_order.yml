@@ -3,7 +3,7 @@ test_push_order:
   batch:
     totalBatch: 10
     currentBatch: 5
-    raDataItemsCount: 2000
+    raDataItemsCount: 1
   date:
     checkInDateStart: "2023-04-01 00:00:00"
     checkInDateEnd: "2023-04-05 23:00:00"
